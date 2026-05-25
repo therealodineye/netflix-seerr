@@ -204,44 +204,43 @@ def proxy_image():
     if not target_url:
         return "Missing url parameter", 400
 
-    config = get_env_vars()
-    headers = {
-        "X-Api-Key": config["SEERR_API_KEY"]
-    }
+    # 1. Self-healing/NAT-Bypassing: Extract the public TMDB CDN URL and fetch it directly first.
+    # This prevents Docker loopback/NAT Hairpin connection timeouts on the server when trying to fetch via Seerr's local URL.
+    import re
+    tmdb_match = re.search(r'(https?://image\.tmdb\.org/t/p/.*)$', target_url)
+    if tmdb_match:
+        tmdb_url = tmdb_match.group(1)
+    else:
+        tmdb_url = target_url
 
     try:
-        # 1. Attempt to stream the image from Seerr's proxy using backend auth
-        img_res = requests.get(target_url, headers=headers, timeout=5, stream=True)
-        img_res.raise_for_status()
-
+        fallback_res = requests.get(tmdb_url, timeout=5, stream=True)
+        fallback_res.raise_for_status()
+        
         from flask import Response
         return Response(
-            img_res.raw.read(),
-            mimetype=img_res.headers.get("Content-Type", "image/jpeg")
+            fallback_res.raw.read(),
+            mimetype=fallback_res.headers.get("Content-Type", "image/jpeg")
         )
     except Exception as e:
-        print(f"[IMAGE PROXY WARNING] Failed to fetch from Seerr ({e}). Falling back to TMDB CDN directly...")
+        print(f"[IMAGE PROXY WARNING] Direct TMDB CDN fetch failed ({e}). Falling back to Seerr local API...")
         
-        # 2. Self-healing fallback: extract the TMDB portion and fetch from TMDB directly
-        import re
-        tmdb_match = re.search(r'(https://image\.tmdb\.org/t/p/.*)$', target_url)
-        if tmdb_match:
-            tmdb_url = tmdb_match.group(1)
-        else:
-            # Fallback if URL doesn't match standard prefix
-            tmdb_url = target_url
-            
+        # 2. Secondary backup: Fetch via Seerr API if TMDB CDN fails
+        config = get_env_vars()
+        headers = {
+            "X-Api-Key": config["SEERR_API_KEY"]
+        }
         try:
-            fallback_res = requests.get(tmdb_url, timeout=5, stream=True)
-            fallback_res.raise_for_status()
+            img_res = requests.get(target_url, headers=headers, timeout=5, stream=True)
+            img_res.raise_for_status()
             
             from flask import Response
             return Response(
-                fallback_res.raw.read(),
-                mimetype=fallback_res.headers.get("Content-Type", "image/jpeg")
+                img_res.raw.read(),
+                mimetype=img_res.headers.get("Content-Type", "image/jpeg")
             )
-        except Exception as fallback_err:
-            print(f"[IMAGE PROXY ERROR] Fallback also failed: {fallback_err}")
+        except Exception as seerr_err:
+            print(f"[IMAGE PROXY ERROR] Seerr backup fetch also failed: {seerr_err}")
             return "Failed to load image", 500
 
 
