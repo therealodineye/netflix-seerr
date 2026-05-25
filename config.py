@@ -1,4 +1,5 @@
 import os
+import sys
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
@@ -9,14 +10,18 @@ SEERR_API_KEY = os.getenv("SEERR_API_KEY")
 SEERR_EMAIL = os.getenv("SEERR_EMAIL")
 SEERR_PASSWORD = os.getenv("SEERR_PASSWORD")
 
+# Soft warning instead of hard crash at startup
+missing = []
 if not SEERR_URL:
-    raise ValueError("SEERR_URL must be set in the .env file")
-
+    missing.append("SEERR_URL")
 if not SEERR_API_KEY:
-    raise ValueError("SEERR_API_KEY must be set in the .env file")
-
+    missing.append("SEERR_API_KEY")
 if not SEERR_EMAIL:
-    raise ValueError("SEERR_EMAIL must be set in the .env file")
-    
+    missing.append("SEERR_EMAIL")
 if not SEERR_PASSWORD:
-    raise ValueError("SEERR_PASSWORD must be set in the .env file")
+    missing.append("SEERR_PASSWORD")
+
+if missing:
+    print(f"[WARNING] The following environment variables are missing from .env: {', '.join(missing)}. "
+          f"Please configure them in the app settings drawer.", file=sys.stderr)
+

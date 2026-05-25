@@ -1,0 +1,12 @@
+services:
+  netflix-seerr-sync:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: netflix-seerr-sync
+    ports:
+      - "8562:5000"
+    volumes:
+      # Mount the local .env file to persist Overseerr configuration settings saved in the UI
+      - ./.env:/app/.env
+    restart: unless-stopped
