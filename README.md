@@ -31,27 +31,61 @@ Running the application with Docker or Docker Compose is the easiest and most ro
 ### Prerequisites
 Make sure you have [Docker](https://docs.docker.com/) and [Docker Compose](https://docs.docker.com/compose/) installed on your machine.
 
-### Quick Start
-1. **Clone the Repository** and enter the folder:
-   ```bash
-   git clone <your-repository-url>
-   cd netflix-seerr
+### Method A: Instant Setup (Pre-built Image - No Cloning Needed!)
+If you just want to run the application, you only need a single file: `docker-compose.yml`.
+
+1. **Create a `docker-compose.yml` file** on your machine:
+   ```yaml
+   services:
+     netflix-seerr-sync:
+       image: ghcr.io/therealodineye/netflix-seerr:latest
+       container_name: netflix-seerr-sync
+       ports:
+         - "8562:5000"
+       volumes:
+         # Mounts local .env file to persist configurations entered in the UI settings drawer
+         - ./.env:/app/.env
+       restart: unless-stopped
    ```
 
-2. **Prepare the environment file** (to persist credentials):
+2. **Pre-create an empty `.env` file** in the same directory:
    ```bash
-   cp .env.example .env
+   touch .env
    ```
    > [!IMPORTANT]
    > You must create the `.env` file *before* starting the docker container so that Docker Compose mounts a file rather than creating an empty directory on the host.
 
-3. **Start the application** in detached mode:
+3. **Start the application:**
    ```bash
    docker compose up -d
    ```
 
-4. **Access the Web App:** Open your browser and navigate to:
-   **[http://localhost:8562](http://localhost:8562)**
+4. **Access the Web App:** Open your browser and navigate to: **[http://localhost:8562](http://localhost:8562)**
+
+---
+
+### Method B: Clone & Build Locally
+If you prefer to compile and build the container image yourself from the source code:
+
+1. **Clone the Repository** and enter the folder:
+   ```bash
+   git clone https://github.com/therealodineye/netflix-seerr.git
+   cd netflix-seerr
+   ```
+
+2. **Prepare the environment file:**
+   ```bash
+   cp .env.example .env
+   ```
+   > [!IMPORTANT]
+   > Create the `.env` file *before* running compose to prevent Docker from mounting it as a folder.
+
+3. **Start the application** (it will compile locally using the local `Dockerfile`):
+   ```bash
+   docker compose up -d
+   ```
+
+4. **Access the Web App:** Open your browser and navigate to: **[http://localhost:8562](http://localhost:8562)**
 
 ---
 
