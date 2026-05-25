@@ -127,6 +127,8 @@ def fetch_netflix_list():
                     item["posterUrl"] = f"/api/proxy-image?url={urllib.parse.quote(raw_url)}"
                 item["status"] = seerr_res.get("status")
                 item["isRequestable"] = not seerr_res.get("skip")
+                item["year"] = seerr_res.get("year")
+                item["genre"] = seerr_res.get("genre")
             movies_results.append(item)
 
     # Process TV shows
@@ -149,6 +151,8 @@ def fetch_netflix_list():
                     item["posterUrl"] = f"/api/proxy-image?url={urllib.parse.quote(raw_url)}"
                 item["status"] = seerr_res.get("status")
                 item["isRequestable"] = not seerr_res.get("skip")
+                item["year"] = seerr_res.get("year")
+                item["genre"] = seerr_res.get("genre")
             shows_results.append(item)
 
     return jsonify({

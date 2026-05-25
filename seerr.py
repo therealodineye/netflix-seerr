@@ -5,6 +5,39 @@ import urllib.parse
 
 _CACHED_COOKIE = None
 
+# TMDB standardized Genre IDs mapping to names
+GENRES_MAP = {
+    # Movie Genres
+    28: "Action",
+    12: "Adventure",
+    16: "Animation",
+    35: "Comedy",
+    80: "Crime",
+    99: "Documentary",
+    18: "Drama",
+    10751: "Family",
+    14: "Fantasy",
+    36: "History",
+    27: "Horror",
+    10402: "Music",
+    9648: "Mystery",
+    10749: "Romance",
+    878: "Sci-Fi",
+    10770: "TV Movie",
+    53: "Thriller",
+    10752: "War",
+    37: "Western",
+    # TV Genres
+    10759: "Action & Adventure",
+    10762: "Kids",
+    10763: "News",
+    10764: "Reality",
+    10765: "Sci-Fi & Fantasy",
+    10766: "Soap",
+    10767: "Talk",
+    10768: "War & Politics"
+}
+
 def clear_cached_cookie():
     """
     Clears the cached Overseerr session cookie. 
@@ -144,11 +177,22 @@ def search_media(query, media_type="movie"):
                 except Exception as e:
                     print(f"Error fetching detailed info for TMDB ID {tmdb_id}: {e}")
                     
+            # Extract year from releaseDate (movie) or firstAirDate (tv)
+            date_str = result.get("releaseDate") if media_type == "movie" else result.get("firstAirDate")
+            year = date_str[:4] if date_str and len(date_str) >= 4 else None
+
+            # Extract first matching genre name
+            genre_ids = result.get("genreIds", [])
+            genre_names = [GENRES_MAP.get(gid) for gid in genre_ids if gid in GENRES_MAP]
+            genre = genre_names[0] if genre_names else None
+
             return {
                 "tmdbId": tmdb_id,
                 "posterUrl": poster_url,
                 "skip": skip,
-                "status": status_str
+                "status": status_str,
+                "year": year,
+                "genre": genre
             }
             
     return None

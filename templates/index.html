@@ -899,6 +899,11 @@
                             <span class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">${type}</span>
                         </div>
                         <h3 class="font-extrabold text-base text-white group-hover:text-brand-300 transition-colors leading-tight truncate" title="${item.title}">${item.title}</h3>
+                        ${item.year || item.genre ? `
+                        <div class="text-xs text-slate-400 font-medium">
+                            ${item.year ? item.year : ''}${item.year && item.genre ? ' | ' : ''}${item.genre ? item.genre : ''}
+                        </div>
+                        ` : ''}
                     </div>
                     <div class="flex items-center space-x-2">
                         ${badgeHtml}
